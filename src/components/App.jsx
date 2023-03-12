@@ -18,6 +18,19 @@ export class App extends Component {
     filter: '',
   };
 
+  componentDidMount() {
+    const contactsFromStorage = localStorage.getItem('contacts');
+    if (contactsFromStorage) {
+      this.setState({ contacts: JSON.parse(contactsFromStorage) });
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.contacts !== this.state.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
+
   updateContacts = ({ name, number }) => {
     const contactExists = this.state.contacts.find(contact => {
       return contact.name === name || contact.number === number;
@@ -51,13 +64,17 @@ export class App extends Component {
     }));
   };
 
+  getFilteredContacts() {
+    const { filter, contacts } = this.state;
+    const normalizedFilter = filter.toLowerCase();
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter)
+    );
+  }
+
   render() {
     const { filter } = this.state;
 
-    const normalizedFilter = this.state.filter.toLowerCase();
-    const filteredContacts = this.state.contacts.filter(contact =>
-      contact.name.toLowerCase().includes(normalizedFilter)
-    );
     return (
       <>
         <Section title="Phonebook">
@@ -66,7 +83,7 @@ export class App extends Component {
         <Section title="Contacts">
           <Filter value={filter} filter={this.filterContacts} />
           <Contacts
-            contactList={filteredContacts}
+            contactList={this.getFilteredContacts()}
             deleteContact={this.deleteContacts}
           />
         </Section>
